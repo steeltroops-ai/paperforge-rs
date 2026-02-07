@@ -1,0 +1,50 @@
+# PaperForge Local Development
+# Run: docker-compose -f docker-compose.local.yml up -d
+
+services:
+  # PostgreSQL with pgvector
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: paperforge-postgres
+    environment:
+      POSTGRES_USER: paperforge
+      POSTGRES_PASSWORD: paperforge_dev
+      POSTGRES_DB: paperforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paperforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: paperforge-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # LocalStack for SQS (mock AWS)
+  localstack:
+    image: localstack/localstack:3.0
+    container_name: paperforge-localstack
+    environment:
+      SERVICES: sqs
+      DEBUG: 0
+      EAGER_SERVICE_LOADING: 1
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init-aws.sh
+
+volumes:
+  postgres_data:

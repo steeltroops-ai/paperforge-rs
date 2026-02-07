@@ -79,13 +79,13 @@ paperforge-platform/
 
 **Goal**: 10M+ paper capacity
 
-| Task                              | Priority | Status      |
-| --------------------------------- | -------- | ----------- |
-| P4.1: Read/Write DB separation    | HIGH     | **DONE**    |
-| P4.2: Table partitioning strategy | MEDIUM   | Not Started |
-| P4.3: Multi-tenant isolation      | MEDIUM   | **DONE**    |
-| P4.4: Dead letter queue           | MEDIUM   | **DONE**    |
-| P4.5: Auto-scaling policies       | LOW      | Not Started |
+| Task                              | Priority | Status   |
+| --------------------------------- | -------- | -------- |
+| P4.1: Read/Write DB separation    | HIGH     | **DONE** |
+| P4.2: Table partitioning strategy | MEDIUM   | **DONE** |
+| P4.3: Multi-tenant isolation      | MEDIUM   | **DONE** |
+| P4.4: Dead letter queue           | MEDIUM   | **DONE** |
+| P4.5: Auto-scaling policies       | LOW      | **DONE** |
 
 ---
 
