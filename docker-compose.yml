@@ -10,7 +10,7 @@ services:
       - APP_SERVER__PORT=3000
       - APP_DATABASE__URL=postgres://postgres:postgres@db:5432/paperforge
       - APP_DATABASE__MAX_CONNECTIONS=10
-      - APP_EMBEDDINGS__MODEL_API_KEY=mock
+      - APP__EMBEDDING__API_KEY=mock
       - RUST_LOG=info,paperforge_rs=debug
     depends_on:
       - db

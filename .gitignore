@@ -5,3 +5,25 @@ target/
 .env
 .DS_Store
 
+
+# Local Datasets
+data/
+venv/
+__pycache__/
+*.pdf
+
+# =====================================
+# Frontend (Next.js + Bun)
+# =====================================
+node_modules/
+.next/
+out/
+build/
+.bun/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

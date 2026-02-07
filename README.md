@@ -20,14 +20,13 @@ High-performance backend for indexing and semantic retrieval of academic papers.
 Hexagonal architecture decoupling domain logic from infrastructure.
 
 ```text
-src/
-├── routes/        # HTTP Handlers (Input Validation)
-├── services/      # Business Logic (Ingest, Search Orchestration)
-├── db/            # Repository Layer (Hybrid Search SQL)
-├── embeddings/    # Adapter for LLM/Model APIs
-├── metrics/       # Prometheus Instrumentation
-├── config.rs      # Typed Configuration
-└── main.rs        # Application Entry & DI
+crates/
+├── common/            # Shared Types, Config, Errors
+├── gateway/           # API Gateway (Auth, Rate Limiting, Routing)
+├── search/            # Search Service (Vector, BM25, Hybrid)
+├── ingestion/         # Ingestion Service (Async Processing)
+├── context/           # Context Management
+└── embedding-worker/  # Embedding Generation Worker
 ```
 
 ## Getting Started
@@ -39,23 +38,38 @@ src/
 
 ### Local Development
 
-1.  **Start Infrastructure**:
+1.  **Setup Configuration**:
+
+    ```bash
+    cp .env.example .env
+    # Edit .env with your local settings
+    ```
+
+2.  **Start Infrastructure**:
 
     ```bash
     docker-compose up -d db prometheus
     ```
 
-2.  **Apply Schema**:
+3.  **Apply Schema**:
 
     ```bash
     cargo install sea-orm-cli
     docker-compose exec -T db psql -U postgres -d paperforge < docs/schema.sql
     ```
 
-3.  **Run Service**:
+4.  **Run Services**:
+
     ```bash
-    cargo run
+    # Run Gateway (API)
+    cargo run -p paperforge-gateway
     # Listening on http://0.0.0.0:3000
+
+    # Run other services (in separate terminals as needed)
+    cargo run -p paperforge-search
+    cargo run -p paperforge-ingestion
+    cargo run -p paperforge-context
+    cargo run -p paperforge-embedding-worker
     ```
 
 ## API Usage
@@ -86,5 +100,4 @@ Designed for **AWS ECS Fargate** + **RDS PostgreSQL**.
 
 1.  Push Docker image.
 2.  Provision RDS with `vector` extension.
-3.  Inject config via Environment Variables (`APP_DATABASE__URL`, `APP_EMBEDDINGS__API_KEY`).
-
+3.  Inject config via Environment Variables (`APP__DATABASE__URL`, `APP__EMBEDDING__API_KEY`).
