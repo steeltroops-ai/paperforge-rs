@@ -137,11 +137,12 @@ regex-lite = "0.1"
 rand = "0.8"
 tokio-test = "0.4"
 
+
 # =====================================
-# Hashing
+# PDF & Text Processing
 # =====================================
-sha2 = "0.10"
-hex = "0.4"
+lopdf = "0.33"
+text-splitter = { version = "0.19", features = ["tiktoken-rs", "markdown"] }
 
 # =====================================
 # Internal Crates

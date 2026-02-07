@@ -131,6 +131,45 @@ impl Queue {
         Ok(messages)
     }
     
+    /// Receive and parse typed messages from the queue
+    /// Returns tuples of (parsed_message, receipt_handle)
+    pub async fn receive<T: DeserializeOwned>(&self) -> Result<Vec<(T, String)>> {
+        let messages = self.receive_raw().await?;
+        let mut parsed = Vec::with_capacity(messages.len());
+        
+        for msg in messages {
+            let receipt_handle = msg.receipt_handle.clone().unwrap_or_default();
+            match Self::parse_message(&msg) {
+                Ok(parsed_msg) => parsed.push((parsed_msg, receipt_handle)),
+                Err(e) => {
+                    warn!(error = %e, "Failed to parse message, skipping");
+                }
+            }
+        }
+        
+        Ok(parsed)
+    }
+    
+    /// Receive raw messages from the queue
+    pub async fn receive_raw(&self) -> Result<Vec<Message>> {
+        let result = self.client
+            .receive_message()
+            .queue_url(&self.config.url)
+            .max_number_of_messages(self.config.max_messages)
+            .visibility_timeout(self.config.visibility_timeout)
+            .wait_time_seconds(self.config.wait_time_seconds)
+            .send()
+            .await
+            .map_err(|e| AppError::QueueError {
+                message: format!("Failed to receive messages: {}", e),
+            })?;
+        
+        let messages = result.messages.unwrap_or_default();
+        debug!(count = messages.len(), "Received messages from queue");
+        
+        Ok(messages)
+    }
+    
     /// Delete a message after processing
     pub async fn delete(&self, receipt_handle: &str) -> Result<()> {
         self.client
