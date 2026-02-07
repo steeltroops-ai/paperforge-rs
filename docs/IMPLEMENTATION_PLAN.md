@@ -64,16 +64,16 @@ paperforge-platform/
 
 **Goal**: Implement Augment-like intelligence layer
 
-| Task                                                | Priority | Status      |
-| --------------------------------------------------- | -------- | ----------- |
-| P3.1: Query Parser + Intent Classification          | HIGH     | **DONE**    |
-| P3.2: Query Expander (synonyms, session)            | HIGH     | **DONE**    |
-| P3.3: Multi-modal retrieval (vector + BM25 + graph) | HIGH     | In Progress |
-| P3.4: Context Stitcher                              | HIGH     | **DONE**    |
-| P3.5: Session Memory (Redis)                        | MEDIUM   | **DONE**    |
-| P3.6: Multi-Hop Reasoner                            | MEDIUM   | **DONE**    |
-| P3.7: LLM Integration Layer                         | LOW      | **DONE**    |
-| P3.8: Citation Propagation Scoring                  | LOW      | In Progress |
+| Task                                                | Priority | Status   |
+| --------------------------------------------------- | -------- | -------- |
+| P3.1: Query Parser + Intent Classification          | HIGH     | **DONE** |
+| P3.2: Query Expander (synonyms, session)            | HIGH     | **DONE** |
+| P3.3: Multi-modal retrieval (vector + BM25 + graph) | HIGH     | **DONE** |
+| P3.4: Context Stitcher                              | HIGH     | **DONE** |
+| P3.5: Session Memory (Redis)                        | MEDIUM   | **DONE** |
+| P3.6: Multi-Hop Reasoner                            | MEDIUM   | **DONE** |
+| P3.7: LLM Integration Layer                         | LOW      | **DONE** |
+| P3.8: Citation Propagation Scoring                  | LOW      | **DONE** |
 
 ### Phase 4: Scale & Reliability (Week 9-12)
 
@@ -81,10 +81,10 @@ paperforge-platform/
 
 | Task                              | Priority | Status      |
 | --------------------------------- | -------- | ----------- |
-| P4.1: Read/Write DB separation    | HIGH     | Not Started |
+| P4.1: Read/Write DB separation    | HIGH     | **DONE**    |
 | P4.2: Table partitioning strategy | MEDIUM   | Not Started |
-| P4.3: Multi-tenant isolation      | MEDIUM   | Not Started |
-| P4.4: Dead letter queue           | MEDIUM   | Not Started |
+| P4.3: Multi-tenant isolation      | MEDIUM   | **DONE**    |
+| P4.4: Dead letter queue           | MEDIUM   | **DONE**    |
 | P4.5: Auto-scaling policies       | LOW      | Not Started |
 
 ---

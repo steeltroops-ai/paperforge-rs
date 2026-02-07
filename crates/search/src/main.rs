@@ -1,14 +1,21 @@
 //! PaperForge Search Service
 //!
 //! Dedicated search microservice providing:
-//! - Vector similarity search
-//! - BM25 text search
+//! - Vector similarity search (pgvector)
+//! - BM25 text search (PostgreSQL full-text)
 //! - Hybrid search with RRF fusion
+//! - Citation graph traversal & PageRank scoring
 //! - Query caching via Redis
 
-use paperforge_common::{config::AppConfig, db::DbPool, VERSION};
+mod retrieval;
+mod citation;
+mod grpc;
+
+use paperforge_common::{config::AppConfig, db::DbPool, cache::{Cache, CacheConfig}, VERSION};
+use std::net::SocketAddr;
 use std::sync::Arc;
-use tracing::{info, Level};
+use tonic::transport::Server;
+use tracing::{info, warn, Level};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -34,16 +41,79 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Initialize database connection
     info!("Connecting to database...");
-    let _db = DbPool::new(&config.database).await?;
+    let db = Arc::new(DbPool::new(&config.database).await?);
     
-    // TODO: Initialize Redis connection
-    // TODO: Start gRPC server
+    // Initialize Redis cache (optional)
+    let cache = match std::env::var("REDIS_URL") {
+        Ok(url) => {
+            info!("Connecting to Redis at {}", url);
+            let cache_config = CacheConfig {
+                url,
+                default_ttl_secs: 300,
+                pool_size: 10,
+                key_prefix: "paperforge:search".to_string(),
+            };
+            match Cache::new(cache_config).await {
+                Ok(cache) => {
+                    info!("Redis cache connected");
+                    Some(Arc::new(cache))
+                }
+                Err(e) => {
+                    warn!("Failed to connect to Redis, caching disabled: {}", e);
+                    None
+                }
+            }
+        }
+        Err(_) => {
+            warn!("REDIS_URL not set, caching disabled");
+            None
+        }
+    };
     
-    info!("Search service ready (placeholder implementation)");
+    // Create gRPC service
+    let search_service = grpc::SearchGrpcService::new(db, cache);
     
-    // Keep running
-    tokio::signal::ctrl_c().await?;
+    // Get gRPC port
+    let grpc_port = std::env::var("GRPC_PORT")
+        .ok()
+        .and_then(|p| p.parse().ok())
+        .unwrap_or(50051);
     
-    info!("Search service shutting down");
+    let addr: SocketAddr = ([0, 0, 0, 0], grpc_port).into();
+    
+    info!("Search service listening on gRPC port {}", grpc_port);
+    
+    // Start gRPC server
+    Server::builder()
+        .add_service(search_service.into_server())
+        .serve_with_shutdown(addr, shutdown_signal())
+        .await?;
+    
+    info!("Search service shutdown complete");
     Ok(())
+}
+
+/// Graceful shutdown signal handler
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => info!("Received Ctrl+C, starting shutdown..."),
+        _ = terminate => info!("Received SIGTERM, starting shutdown..."),
+    }
 }

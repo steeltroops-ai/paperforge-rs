@@ -27,6 +27,9 @@ redis = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 
+# Database access
+sea-orm = { workspace = true }
+
 # gRPC for internal communication
 tonic = { workspace = true }
 prost = { workspace = true }
@@ -34,6 +37,10 @@ prost = { workspace = true }
 # Metrics
 metrics = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
+
+# Hashing for cache keys
+sha2 = { workspace = true }
+hex = { workspace = true }
 
 [dev-dependencies]
 tokio-test = { workspace = true }

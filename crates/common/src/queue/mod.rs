@@ -174,6 +174,169 @@ impl Queue {
             message: format!("Failed to parse message: {}", e),
         })
     }
+    
+    // =========================================================================
+    // Dead Letter Queue (DLQ) Operations
+    // =========================================================================
+    
+    /// Move a message to the dead letter queue
+    pub async fn move_to_dlq<T: Serialize>(&self, message: &T, reason: &str) -> Result<()> {
+        let dlq_url = self.config.dlq_url.as_ref().ok_or_else(|| AppError::QueueError {
+            message: "No DLQ configured".to_string(),
+        })?;
+        
+        // Wrap the message with error context
+        let dlq_message = DlqMessage {
+            original_message: serde_json::to_value(message).unwrap_or_default(),
+            failure_reason: reason.to_string(),
+            failed_at: chrono::Utc::now(),
+            source_queue: self.config.url.clone(),
+        };
+        
+        let body = serde_json::to_string(&dlq_message)
+            .map_err(|e| AppError::QueueError { 
+                message: format!("Failed to serialize DLQ message: {}", e) 
+            })?;
+        
+        self.client
+            .send_message()
+            .queue_url(dlq_url)
+            .message_body(&body)
+            .send()
+            .await
+            .map_err(|e| AppError::QueueError {
+                message: format!("Failed to send to DLQ: {}", e),
+            })?;
+        
+        warn!(reason = %reason, "Message moved to DLQ");
+        Ok(())
+    }
+    
+    /// Get approximate count of messages in the DLQ
+    pub async fn get_dlq_count(&self) -> Result<u64> {
+        let dlq_url = self.config.dlq_url.as_ref().ok_or_else(|| AppError::QueueError {
+            message: "No DLQ configured".to_string(),
+        })?;
+        
+        let result = self.client
+            .get_queue_attributes()
+            .queue_url(dlq_url)
+            .attribute_names(aws_sdk_sqs::types::QueueAttributeName::ApproximateNumberOfMessages)
+            .send()
+            .await
+            .map_err(|e| AppError::QueueError {
+                message: format!("Failed to get DLQ attributes: {}", e),
+            })?;
+        
+        let count = result.attributes
+            .and_then(|attrs| attrs.get(&aws_sdk_sqs::types::QueueAttributeName::ApproximateNumberOfMessages).cloned())
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
+        
+        Ok(count)
+    }
+    
+    /// Receive messages from the DLQ for inspection
+    pub async fn receive_from_dlq(&self) -> Result<Vec<Message>> {
+        let dlq_url = self.config.dlq_url.as_ref().ok_or_else(|| AppError::QueueError {
+            message: "No DLQ configured".to_string(),
+        })?;
+        
+        let result = self.client
+            .receive_message()
+            .queue_url(dlq_url)
+            .max_number_of_messages(10)
+            .visibility_timeout(30)
+            .send()
+            .await
+            .map_err(|e| AppError::QueueError {
+                message: format!("Failed to receive from DLQ: {}", e),
+            })?;
+        
+        let messages = result.messages.unwrap_or_default();
+        debug!(count = messages.len(), "Received messages from DLQ");
+        
+        Ok(messages)
+    }
+    
+    /// Redrive a message from DLQ back to the main queue
+    pub async fn redrive_message(&self, message: &Message) -> Result<()> {
+        let dlq_url = self.config.dlq_url.as_ref().ok_or_else(|| AppError::QueueError {
+            message: "No DLQ configured".to_string(),
+        })?;
+        
+        let body = message.body.as_ref().ok_or_else(|| AppError::QueueError {
+            message: "Message has no body".to_string(),
+        })?;
+        
+        // Send back to main queue
+        self.client
+            .send_message()
+            .queue_url(&self.config.url)
+            .message_body(body)
+            .send()
+            .await
+            .map_err(|e| AppError::QueueError {
+                message: format!("Failed to redrive message: {}", e),
+            })?;
+        
+        // Delete from DLQ
+        if let Some(receipt_handle) = message.receipt_handle.as_ref() {
+            self.client
+                .delete_message()
+                .queue_url(dlq_url)
+                .receipt_handle(receipt_handle)
+                .send()
+                .await
+                .map_err(|e| AppError::QueueError {
+                    message: format!("Failed to delete from DLQ: {}", e),
+                })?;
+        }
+        
+        info!("Message redriven from DLQ");
+        Ok(())
+    }
+    
+    /// Redrive all eligible messages from DLQ (with limit)
+    pub async fn redrive_all(&self, max_messages: usize) -> Result<usize> {
+        let mut total_redriven = 0;
+        
+        while total_redriven < max_messages {
+            let messages = self.receive_from_dlq().await?;
+            if messages.is_empty() {
+                break;
+            }
+            
+            for message in messages {
+                if total_redriven >= max_messages {
+                    break;
+                }
+                
+                if let Err(e) = self.redrive_message(&message).await {
+                    error!(error = %e, "Failed to redrive message");
+                    continue;
+                }
+                
+                total_redriven += 1;
+            }
+        }
+        
+        info!(count = total_redriven, "Messages redriven from DLQ");
+        Ok(total_redriven)
+    }
+}
+
+/// Dead Letter Queue message wrapper
+#[derive(Debug, Clone, Serialize, serde::Deserialize)]
+pub struct DlqMessage {
+    /// Original message content
+    pub original_message: serde_json::Value,
+    /// Reason for failure
+    pub failure_reason: String,
+    /// When the message failed
+    pub failed_at: chrono::DateTime<chrono::Utc>,
+    /// Source queue URL
+    pub source_queue: String,
 }
 
 /// Ingestion job message
