@@ -1,114 +1,90 @@
 # PaperForge-rs
 
-## Production-grade MVP Async Rust Microservice for Semantic Research Paper Retrieval
+**Production-grade Async Rust Microservice for Semantic Research Paper Retrieval**
 
-**Status**: Active Development
-**Technology**: Rust, Axum, PostgreSQL, pgvector, Docker
+![Stack](https://img.shields.io/badge/ech-Rust%20%7C%20Axum%20%7C%20Postgres-orange)
 
-### Overview
+## Overview
 
-PaperForge-rs is a high-performance backend microservice designed for indexing, embedding, and semantic retrieval of academic research papers. It leverages the power of async Rust, `pgvector`, and modern observability practices to provide a scalable and robust solution for research discovery.
+High-performance backend for indexing and semantic retrieval of academic papers. Implements "Hybrid Search" (Vector Cosine Similarity + Full-Text Rank) using pgvector and HNSW indices.
 
-This project demonstrates systems-level thinking in building cloud-native applications, prioritizing correctness, performance, and maintainability.
+## Tech Stack
 
-### Key Features
+- **Core**: Rust 2021 (Tokio, Axum)
+- **Data**: PostgreSQL 16 (`pgvector`, `uuid-ossp`)
+- **ORM**: Sea-ORM + SQLx (Raw SQL for vector ops)
+- **Ops**: Docker Compose, Prometheus Metrics, Tracing
 
-- **Semantic Search**: Utilizes vector embeddings (768d) for context-aware search, moving beyond simple keyword matching.
-- **Hybrid Retrieval**: Combines vector similarity with structured metadata filtering (e.g., date, source).
-- **High Performance**: Built on the Tokio runtime and Axum web framework for lightning-fast concurrent request handling.
-- **Production Ready**: Includes comprehensive error handling, structured logging (tracing), and Prometheus metrics.
-- **Scalable Architecture**: Stateless API design, connection pooling, and HNSW indexing for handling millions of vectors.
-- **Containerized**: Fully Dockerized with Docker Compose for easy local development and cloud deployment.
+## Project Structure
 
-### Tech Stack
-
-- **Language**: Rust (2021 Edition)
-- **Web Framework**: Axum
-- **Database**: PostgreSQL 16+ with pgvector
-- **ORM**: Sea-ORM
-- **Serialization**: Serde
-- **Error Handling**: `thiserror` (library), `anyhow` (application)
-- **Observability**: `tracing`, `tracing-subscriber`, `opentelemetry`
-- **Metrics**: Prometheus exporter via `axum-prometheus`
-- **Configuration**: `dotenv` + Typed Config Struct
-- **Embeddings**: Interface compatible with OpenAI API or local inference servers.
-
-### Architecture Structure
+Hexagonal architecture decoupling domain logic from infrastructure.
 
 ```text
 src/
-├── routes/        # HTTP handlers and input validation
-├── services/      # Business logic (Ingestion, Search, Embedding)
-├── db/            # Database access layer and repositories
-├── embeddings/    # Embedding provider integration
-├── metrics/       # Telemetry configuration
-├── config.rs      # Type-safe configuration
-└── main.rs        # Application entry point
+├── routes/        # HTTP Handlers (Input Validation)
+├── services/      # Business Logic (Ingest, Search Orchestration)
+├── db/            # Repository Layer (Hybrid Search SQL)
+├── embeddings/    # Adapter for LLM/Model APIs
+├── metrics/       # Prometheus Instrumentation
+├── config.rs      # Typed Configuration
+└── main.rs        # Application Entry & DI
 ```
 
-### Getting Started
+## Getting Started
 
-#### Prerequisites
+### Prerequisites
 
-- Rust (Latest Stable)
 - Docker & Docker Compose
-- PostgreSQL client (psql, optional)
+- Rust Toolchain (Latest Stable)
 
-#### Local Development
+### Local Development
 
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/yourusername/paperforge-rs.git
-    cd paperforge-rs
-    ```
-
-2.  **Start Infrastructure:**
-    Start the database and monitoring services in the background.
+1.  **Start Infrastructure**:
 
     ```bash
     docker-compose up -d db prometheus
     ```
 
-3.  **Run Migrations:**
-    Ensure the database schema is applied.
+2.  **Apply Schema**:
 
     ```bash
-    # Install SeaORM CLI if you haven't already
     cargo install sea-orm-cli
-
-    # Run migrations (assuming migration scripts exist or using schema.sql manually)
-    # For MVP, you can apply the schema.sql:
     docker-compose exec -T db psql -U postgres -d paperforge < docs/schema.sql
     ```
 
-4.  **Run Application:**
+3.  **Run Service**:
     ```bash
     cargo run
+    # Listening on http://0.0.0.0:3000
     ```
-    The API will listen on `0.0.0.0:3000`.
 
-#### Testing
+## API Usage
 
-Run the comprehensive test suite:
+**Ingest Paper**
 
 ```bash
-cargo test
+curl -X POST http://localhost:3000/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Rust Systems","abstract_text":"Memory safety without GC..."}'
 ```
 
-### Observability
+**Hybrid Search**
 
-- **Metrics**: `GET /metrics` produces Prometheus-formatted metrics.
-- **Health**: `GET /health` provides a liveness probe.
-- **Logs**: Structured JSON logs are emitted to stdout for aggregation (e.g., via FluentBit/Jaeger).
+```bash
+curl "http://localhost:3000/search?q=memory+safety&hybrid=true"
+```
 
-### Deployment Strategy (AWS)
+## Observability
 
-1.  **Container Registry**: Push Docker image to ECR.
-2.  **Compute**: Deploy to ECS Fargate behind an Application Load Balancer.
-3.  **Database**: Provision RDS PostgreSQL (v16+) with the `vector` extension enabled.
-4.  **Configuration**: Inject `APP_DATABASE__URL` and keys via AWS Secrets Manager.
+- **Metrics**: `GET /metrics` (Prometheus)
+- **Health**: `GET /health`
+- **Logs**: JSON structured logging to stdout.
 
-### License
+## Deployment
 
-MIT License.
+Designed for **AWS ECS Fargate** + **RDS PostgreSQL**.
+
+1.  Push Docker image.
+2.  Provision RDS with `vector` extension.
+3.  Inject config via Environment Variables (`APP_DATABASE__URL`, `APP_EMBEDDINGS__API_KEY`).
+
