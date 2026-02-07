@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - APP_SERVER__HOST=0.0.0.0
+      - APP_SERVER__PORT=3000
+      - APP_DATABASE__URL=postgres://postgres:postgres@db:5432/paperforge
+      - APP_DATABASE__MAX_CONNECTIONS=10
+      - APP_EMBEDDINGS__MODEL_API_KEY=mock
+      - RUST_LOG=info,paperforge_rs=debug
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=paperforge
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+volumes:
+  postgres_data:
