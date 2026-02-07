@@ -1,0 +1,197 @@
+// PaperForge Search Service Protocol
+// Provides vector, BM25, and hybrid search capabilities
+
+syntax = "proto3";
+
+package paperforge.search.v2;
+
+option java_package = "com.paperforge.search.v2";
+option java_multiple_files = true;
+
+// Search Service - handles all search operations
+service SearchService {
+    // Perform a single search query
+    rpc Search(SearchRequest) returns (SearchResponse);
+    
+    // Perform batch search (multiple queries)
+    rpc BatchSearch(BatchSearchRequest) returns (BatchSearchResponse);
+    
+    // Get search suggestions/autocomplete
+    rpc Suggest(SuggestRequest) returns (SuggestResponse);
+}
+
+// Search request
+message SearchRequest {
+    // Required: the search query text
+    string query = 1;
+    
+    // Tenant ID for isolation
+    string tenant_id = 2;
+    
+    // Optional: pre-computed query embedding
+    repeated float query_embedding = 3;
+    
+    // Search options
+    SearchOptions options = 4;
+}
+
+// Search options
+message SearchOptions {
+    // Search mode: vector, bm25, hybrid (default)
+    SearchMode mode = 1;
+    
+    // Maximum results to return (default: 20)
+    int32 limit = 2;
+    
+    // Offset for pagination
+    int32 offset = 3;
+    
+    // Minimum score threshold (0.0 - 1.0)
+    float min_score = 4;
+    
+    // Enable reranking
+    bool rerank = 5;
+    
+    // Filters
+    SearchFilters filters = 6;
+}
+
+// Search mode enumeration
+enum SearchMode {
+    SEARCH_MODE_UNSPECIFIED = 0;
+    SEARCH_MODE_VECTOR = 1;
+    SEARCH_MODE_BM25 = 2;
+    SEARCH_MODE_HYBRID = 3;
+}
+
+// Search filters
+message SearchFilters {
+    // Filter by paper sources
+    repeated string sources = 1;
+    
+    // Published after timestamp (RFC3339)
+    string published_after = 2;
+    
+    // Published before timestamp (RFC3339)
+    string published_before = 3;
+    
+    // Filter by paper IDs
+    repeated string paper_ids = 4;
+    
+    // Exclude paper IDs
+    repeated string exclude_paper_ids = 5;
+}
+
+// Search response
+message SearchResponse {
+    // Original query
+    string query = 1;
+    
+    // Search mode used
+    SearchMode mode = 2;
+    
+    // Total matching results (before pagination)
+    int32 total_results = 3;
+    
+    // Result items
+    repeated SearchResult results = 4;
+    
+    // Processing time in milliseconds
+    int64 processing_time_ms = 5;
+}
+
+// Individual search result
+message SearchResult {
+    // Chunk UUID
+    string chunk_id = 1;
+    
+    // Paper UUID
+    string paper_id = 2;
+    
+    // Paper title
+    string paper_title = 3;
+    
+    // Chunk content
+    string content = 4;
+    
+    // Chunk index within paper
+    int32 chunk_index = 5;
+    
+    // Relevance score (0.0 - 1.0)
+    float score = 6;
+    
+    // Vector score component (for hybrid)
+    float vector_score = 7;
+    
+    // BM25 score component (for hybrid)
+    float bm25_score = 8;
+}
+
+// Batch search request
+message BatchSearchRequest {
+    // Multiple queries
+    repeated SingleQuery queries = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Shared options for all queries
+    SearchOptions options = 3;
+}
+
+// Single query in batch
+message SingleQuery {
+    // Query text
+    string query = 1;
+    
+    // Optional limit override (uses shared if 0)
+    int32 limit = 2;
+    
+    // Optional pre-computed embedding
+    repeated float query_embedding = 3;
+}
+
+// Batch search response
+message BatchSearchResponse {
+    // Results for each query
+    repeated BatchSearchResult results = 1;
+    
+    // Total processing time in milliseconds
+    int64 processing_time_ms = 2;
+}
+
+// Result for a single query in batch
+message BatchSearchResult {
+    // Original query
+    string query = 1;
+    
+    // Search results
+    repeated SearchResult results = 2;
+}
+
+// Suggestion request
+message SuggestRequest {
+    // Partial query text
+    string prefix = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Maximum suggestions (default: 10)
+    int32 limit = 3;
+}
+
+// Suggestion response
+message SuggestResponse {
+    // Suggested completions
+    repeated Suggestion suggestions = 1;
+}
+
+// Individual suggestion
+message Suggestion {
+    // Suggested text
+    string text = 1;
+    
+    // Relevance score
+    float score = 2;
+}

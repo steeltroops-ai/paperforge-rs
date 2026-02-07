@@ -1,0 +1,111 @@
+// PaperForge Embedding Service Protocol
+// Internal service for embedding generation
+
+syntax = "proto3";
+
+package paperforge.embedding.v2;
+
+option java_package = "com.paperforge.embedding.v2";
+option java_multiple_files = true;
+
+// Embedding Service - generates embeddings for text
+service EmbeddingService {
+    // Generate embeddings for text chunks
+    rpc Embed(EmbedRequest) returns (EmbedResponse);
+    
+    // Generate embeddings for a batch of texts
+    rpc BatchEmbed(BatchEmbedRequest) returns (BatchEmbedResponse);
+    
+    // Get model information
+    rpc GetModelInfo(GetModelInfoRequest) returns (ModelInfo);
+}
+
+// Embed request
+message EmbedRequest {
+    // Text to embed
+    string text = 1;
+    
+    // Model to use (optional, uses default if not specified)
+    string model = 2;
+}
+
+// Embed response
+message EmbedResponse {
+    // Embedding vector
+    repeated float embedding = 1;
+    
+    // Model used
+    string model = 2;
+    
+    // Dimension
+    int32 dimension = 3;
+    
+    // Processing time in milliseconds
+    int64 processing_time_ms = 4;
+}
+
+// Batch embed request
+message BatchEmbedRequest {
+    // Texts to embed
+    repeated TextInput texts = 1;
+    
+    // Model to use
+    string model = 2;
+}
+
+// Text input with optional ID
+message TextInput {
+    // Optional ID for tracking
+    string id = 1;
+    
+    // Text content
+    string text = 2;
+}
+
+// Batch embed response
+message BatchEmbedResponse {
+    // Embeddings in same order as input
+    repeated EmbeddingResult embeddings = 1;
+    
+    // Model used
+    string model = 2;
+    
+    // Processing time in milliseconds
+    int64 processing_time_ms = 3;
+}
+
+// Individual embedding result
+message EmbeddingResult {
+    // ID from input (if provided)
+    string id = 1;
+    
+    // Embedding vector
+    repeated float embedding = 2;
+    
+    // Token count for this text
+    int32 token_count = 3;
+}
+
+// Get model info request
+message GetModelInfoRequest {
+    // Model name (optional, returns default if not specified)
+    string model = 1;
+}
+
+// Model information
+message ModelInfo {
+    // Model name
+    string name = 1;
+    
+    // Embedding dimension
+    int32 dimension = 2;
+    
+    // Maximum tokens per request
+    int32 max_tokens = 3;
+    
+    // Provider (openai, local, etc.)
+    string provider = 4;
+    
+    // Model version
+    string version = 5;
+}

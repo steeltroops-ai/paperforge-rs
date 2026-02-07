@@ -1,0 +1,195 @@
+// PaperForge Ingestion Service Protocol
+// Handles async paper ingestion and job management
+
+syntax = "proto3";
+
+package paperforge.ingestion.v2;
+
+option java_package = "com.paperforge.ingestion.v2";
+option java_multiple_files = true;
+
+// Ingestion Service - manages paper processing jobs
+service IngestionService {
+    // Create a new ingestion job
+    rpc CreateJob(CreateJobRequest) returns (CreateJobResponse);
+    
+    // Get job status
+    rpc GetJob(GetJobRequest) returns (JobStatus);
+    
+    // List jobs for a tenant
+    rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+    
+    // Cancel a pending job
+    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+    
+    // Retry a failed job
+    rpc RetryJob(RetryJobRequest) returns (RetryJobResponse);
+}
+
+// Create job request
+message CreateJobRequest {
+    // Tenant ID
+    string tenant_id = 1;
+    
+    // Paper data
+    PaperInput paper = 2;
+    
+    // Ingestion options
+    IngestionOptions options = 3;
+    
+    // Idempotency key for deduplication
+    string idempotency_key = 4;
+}
+
+// Paper input data
+message PaperInput {
+    // Paper title
+    string title = 1;
+    
+    // Abstract text
+    string abstract_text = 2;
+    
+    // Optional source identifier
+    string source = 3;
+    
+    // External ID (e.g., DOI, arXiv ID)
+    string external_id = 4;
+    
+    // Published timestamp (RFC3339)
+    string published_at = 5;
+    
+    // Flexible metadata as JSON string
+    string metadata_json = 6;
+}
+
+// Ingestion options
+message IngestionOptions {
+    // Embedding model to use
+    string embedding_model = 1;
+    
+    // Chunking strategy: sentence, paragraph, sliding
+    string chunk_strategy = 2;
+    
+    // Target chunk size in tokens
+    int32 chunk_size = 3;
+    
+    // Chunk overlap in tokens
+    int32 chunk_overlap = 4;
+    
+    // Priority: low, normal, high
+    string priority = 5;
+}
+
+// Create job response
+message CreateJobResponse {
+    // Job UUID
+    string job_id = 1;
+    
+    // Current status
+    JobState status = 2;
+    
+    // Estimated time to completion (milliseconds)
+    int64 estimated_completion_ms = 3;
+}
+
+// Get job request
+message GetJobRequest {
+    // Job UUID
+    string job_id = 1;
+    
+    // Tenant ID for authorization
+    string tenant_id = 2;
+}
+
+// Job status enumeration
+enum JobState {
+    JOB_STATE_UNSPECIFIED = 0;
+    JOB_STATE_PENDING = 1;
+    JOB_STATE_PROCESSING = 2;
+    JOB_STATE_EMBEDDING = 3;
+    JOB_STATE_COMPLETED = 4;
+    JOB_STATE_FAILED = 5;
+    JOB_STATE_CANCELLED = 6;
+}
+
+// Job status details
+message JobStatus {
+    // Job UUID
+    string job_id = 1;
+    
+    // Current state
+    JobState state = 2;
+    
+    // Paper ID (set when paper is created)
+    string paper_id = 3;
+    
+    // Progress tracking
+    int32 chunks_processed = 4;
+    int32 chunks_total = 5;
+    
+    // Progress percentage (0.0 - 100.0)
+    float progress_percent = 6;
+    
+    // Error message if failed
+    string error_message = 7;
+    
+    // Retry count
+    int32 retry_count = 8;
+    
+    // Timestamps (RFC3339)
+    string created_at = 9;
+    string started_at = 10;
+    string completed_at = 11;
+}
+
+// List jobs request
+message ListJobsRequest {
+    // Tenant ID
+    string tenant_id = 1;
+    
+    // Filter by state
+    repeated JobState states = 2;
+    
+    // Pagination
+    int32 limit = 3;
+    int32 offset = 4;
+}
+
+// List jobs response
+message ListJobsResponse {
+    // Job statuses
+    repeated JobStatus jobs = 1;
+    
+    // Total count
+    int32 total_count = 2;
+}
+
+// Cancel job request
+message CancelJobRequest {
+    // Job UUID
+    string job_id = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+}
+
+// Cancel job response
+message CancelJobResponse {
+    // Updated job status
+    JobStatus job = 1;
+}
+
+// Retry job request
+message RetryJobRequest {
+    // Job UUID
+    string job_id = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+}
+
+// Retry job response
+message RetryJobResponse {
+    // New job status
+    JobStatus job = 1;
+}

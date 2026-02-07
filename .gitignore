@@ -5,5 +5,3 @@ target/
 .env
 .DS_Store
 
-docs/
-.vs/

@@ -1,0 +1,358 @@
+// PaperForge Context Engine Protocol
+// Provides intelligent research assistance and LLM integration
+
+syntax = "proto3";
+
+package paperforge.context.v2;
+
+option java_package = "com.paperforge.context.v2";
+option java_multiple_files = true;
+
+// Context Engine Service - research intelligence layer
+service ContextService {
+    // Perform intelligent search with context stitching
+    rpc IntelligentSearch(IntelligentSearchRequest) returns (IntelligentSearchResponse);
+    
+    // Create or update a session
+    rpc CreateSession(CreateSessionRequest) returns (Session);
+    
+    // Get session state
+    rpc GetSession(GetSessionRequest) returns (Session);
+    
+    // Track user event in session
+    rpc TrackEvent(TrackEventRequest) returns (TrackEventResponse);
+    
+    // Generate LLM synthesis
+    rpc Synthesize(SynthesizeRequest) returns (SynthesizeResponse);
+    
+    // Expand a query with context
+    rpc ExpandQuery(ExpandQueryRequest) returns (ExpandQueryResponse);
+}
+
+// Intelligent search request
+message IntelligentSearchRequest {
+    // Search query
+    string query = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Optional session ID for context
+    string session_id = 3;
+    
+    // Intelligence options
+    IntelligenceOptions options = 4;
+}
+
+// Intelligence options
+message IntelligenceOptions {
+    // Mode: quick, standard, deep, synthesis
+    IntelligenceMode mode = 1;
+    
+    // Maximum reasoning hops (default: 2)
+    int32 max_hops = 2;
+    
+    // Include reasoning chain in response
+    bool include_reasoning = 3;
+    
+    // Include LLM synthesis
+    bool include_synthesis = 4;
+    
+    // Result limit (default: 20)
+    int32 limit = 5;
+    
+    // Token budget for context (default: 4000)
+    int32 context_token_budget = 6;
+}
+
+// Intelligence mode
+enum IntelligenceMode {
+    INTELLIGENCE_MODE_UNSPECIFIED = 0;
+    INTELLIGENCE_MODE_QUICK = 1;      // Fast, minimal processing
+    INTELLIGENCE_MODE_STANDARD = 2;   // Balanced
+    INTELLIGENCE_MODE_DEEP = 3;       // Multi-hop reasoning
+    INTELLIGENCE_MODE_SYNTHESIS = 4;  // Full LLM synthesis
+}
+
+// Intelligent search response
+message IntelligentSearchResponse {
+    // Original query
+    string query = 1;
+    
+    // Session ID (created if not provided)
+    string session_id = 2;
+    
+    // Query understanding
+    QueryUnderstanding query_understanding = 3;
+    
+    // Search results
+    repeated IntelligenceResult results = 4;
+    
+    // Stitched context windows
+    ContextWindows context = 5;
+    
+    // Reasoning chain (if deep mode)
+    ReasoningChain reasoning = 6;
+    
+    // LLM synthesis (if synthesis mode)
+    SynthesizedAnswer synthesis = 7;
+    
+    // Processing time in milliseconds
+    int64 processing_time_ms = 8;
+}
+
+// Query understanding
+message QueryUnderstanding {
+    // Detected intent
+    string intent = 1;
+    
+    // Extracted entities
+    repeated Entity entities = 2;
+    
+    // Query expansion terms
+    repeated string expanded_terms = 3;
+    
+    // Confidence score
+    float confidence = 4;
+}
+
+// Entity extracted from query
+message Entity {
+    // Entity text
+    string text = 1;
+    
+    // Entity type: concept, author, method, etc.
+    string entity_type = 2;
+    
+    // Confidence score
+    float confidence = 3;
+}
+
+// Intelligence result (enhanced search result)
+message IntelligenceResult {
+    // Chunk ID
+    string chunk_id = 1;
+    
+    // Paper ID
+    string paper_id = 2;
+    
+    // Paper title
+    string paper_title = 3;
+    
+    // Content
+    string content = 4;
+    
+    // Relevance score
+    float score = 5;
+    
+    // Citation boost score
+    float citation_boost = 6;
+    
+    // Reasoning relevance (if multi-hop)
+    float reasoning_relevance = 7;
+}
+
+// Context windows
+message ContextWindows {
+    // Individual context windows
+    repeated ContextWindow windows = 1;
+    
+    // Cross-references between windows
+    repeated CrossReference cross_references = 2;
+    
+    // Total tokens in context
+    int32 total_tokens = 3;
+}
+
+// Single context window
+message ContextWindow {
+    // Paper ID
+    string paper_id = 1;
+    
+    // Paper title
+    string paper_title = 2;
+    
+    // Stitched content
+    string content = 3;
+    
+    // Chunk range (start, end)
+    int32 chunk_start = 4;
+    int32 chunk_end = 5;
+    
+    // Relevance score
+    float relevance_score = 6;
+}
+
+// Cross-reference between context windows
+message CrossReference {
+    // Source window index
+    int32 from_window = 1;
+    
+    // Target window index
+    int32 to_window = 2;
+    
+    // Reference type: citation, concept, method
+    string reference_type = 3;
+    
+    // Strength of connection
+    float strength = 4;
+}
+
+// Reasoning chain
+message ReasoningChain {
+    // Reasoning hops
+    repeated ReasoningHop hops = 1;
+}
+
+// Single reasoning hop
+message ReasoningHop {
+    // Query at this hop
+    string query = 1;
+    
+    // Facts extracted
+    repeated string facts = 2;
+    
+    // Number of facts found
+    int32 facts_extracted = 3;
+    
+    // Next query (if more hops)
+    string next_query = 4;
+    
+    // Confidence in this hop
+    float confidence = 5;
+}
+
+// Synthesized answer
+message SynthesizedAnswer {
+    // Generated answer
+    string answer = 1;
+    
+    // Citations used
+    repeated Citation citations = 2;
+    
+    // Confidence score
+    float confidence = 3;
+    
+    // Token count
+    int32 token_count = 4;
+}
+
+// Citation in synthesis
+message Citation {
+    // Citation index (1-based)
+    int32 index = 1;
+    
+    // Paper ID
+    string paper_id = 2;
+    
+    // Paper title
+    string title = 3;
+    
+    // Quoted text
+    string quote = 4;
+}
+
+// Session management messages
+
+message CreateSessionRequest {
+    // Tenant ID
+    string tenant_id = 1;
+    
+    // Optional initial metadata (JSON string)
+    string metadata_json = 2;
+}
+
+message GetSessionRequest {
+    // Session ID
+    string session_id = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+}
+
+message Session {
+    // Session ID
+    string session_id = 1;
+    
+    // Session state (JSON string)
+    string state_json = 2;
+    
+    // Timestamps (RFC3339)
+    string created_at = 3;
+    string last_active_at = 4;
+    string expires_at = 5;
+}
+
+message TrackEventRequest {
+    // Session ID
+    string session_id = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Event type: query, click, view_paper, etc.
+    string event_type = 3;
+    
+    // Event data (JSON string)
+    string event_data_json = 4;
+}
+
+message TrackEventResponse {
+    // Success
+    bool success = 1;
+}
+
+message SynthesizeRequest {
+    // Question to answer
+    string question = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Context to use (from search results)
+    repeated ContextWindow context = 3;
+    
+    // Options
+    SynthesisOptions options = 4;
+}
+
+message SynthesisOptions {
+    // Maximum output tokens
+    int32 max_tokens = 1;
+    
+    // Temperature (0.0 - 1.0)
+    float temperature = 2;
+    
+    // Include citations
+    bool include_citations = 3;
+}
+
+message SynthesizeResponse {
+    // Synthesized answer
+    SynthesizedAnswer answer = 1;
+    
+    // Processing time in milliseconds
+    int64 processing_time_ms = 2;
+}
+
+message ExpandQueryRequest {
+    // Original query
+    string query = 1;
+    
+    // Tenant ID
+    string tenant_id = 2;
+    
+    // Session ID for context
+    string session_id = 3;
+}
+
+message ExpandQueryResponse {
+    // Original query
+    string original_query = 1;
+    
+    // Expanded queries
+    repeated string expanded_queries = 2;
+    
+    // Synonyms added
+    repeated string synonyms = 3;
+}

@@ -1,0 +1,80 @@
+[package]
+name = "paperforge-common"
+version.workspace = true
+edition.workspace = true
+description = "PaperForge shared library - core types, database, auth, and utilities"
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+
+# Web framework types
+axum = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Database
+sea-orm = { workspace = true }
+sqlx = { workspace = true }
+pgvector = { workspace = true }
+
+# Types
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Configuration
+dotenvy = { workspace = true }
+config = { workspace = true }
+
+# Logging & tracing
+tracing = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Async utilities
+async-trait = { workspace = true }
+futures = { workspace = true }
+
+# Validation & security
+validator = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+jsonwebtoken = { workspace = true }
+
+# Redis
+redis = { workspace = true }
+
+# Resilience
+governor = { workspace = true }
+backoff = { workspace = true }
+
+# gRPC
+tonic = { workspace = true }
+prost = { workspace = true }
+
+# AWS SDK (for SQS)
+aws-sdk-sqs = { workspace = true }
+aws-config = { workspace = true }
+aws-types = { workspace = true }
+
+# Regex (lightweight)
+regex-lite = { workspace = true }
+
+# Testing
+rand = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }

@@ -1,0 +1,36 @@
+[package]
+name = "paperforge-embedding-worker"
+version.workspace = true
+edition.workspace = true
+description = "PaperForge Embedding Worker - Background embedding generation"
+
+[[bin]]
+name = "embedding-worker"
+path = "src/main.rs"
+
+[dependencies]
+paperforge-common = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+dotenvy = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+aws-sdk-sqs = { workspace = true }
+aws-config = { workspace = true }
+aws-types = { workspace = true }
+reqwest = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+backoff = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
