@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* 
+ * PaperForge Frontend Theme: "Nebula & Void"
+ * Philosophy: Deep, rich, and highly functional.
+ * Inspired by: Linear, Vercel, and modern SF tooling.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Sidebar */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  /* Charts (if needed) */
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  /* UI Primitives */
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Radii - Refined for a modern feel */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius));
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 10px);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Light Mode: crisp, clean, technical */
+  --background: oklch(0.99 0 0); /* Pure white */
+  --foreground: oklch(0.12 0.01 285); /* Deep zinc */
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0.01 285);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0.01 285);
+
+  /* Primary: Electric Indigo (High Energy) */
+  --primary: oklch(0.45 0.24 270); /* Vivid Indigo */
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.97 0 0); /* Very light gray */
+  --secondary-foreground: oklch(0.25 0.02 285);
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.55 0.02 285);
+
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.2 0.02 285);
+
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.45 0.24 270);
+
+  /* Sidebar Light */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.25 0.02 285);
+  --sidebar-primary: oklch(0.45 0.24 270);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.2 0.02 285);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.45 0.24 270);
+
+  /* Charts */
+  --chart-1: oklch(0.45 0.24 270);
+  --chart-2: oklch(0.6 0.18 180);
+  --chart-3: oklch(0.55 0.2 320);
+  --chart-4: oklch(0.7 0.15 85);
+  --chart-5: oklch(0.6 0.15 40);
+}
+
+.dark {
+  /* Dark Mode: "Void" - Deep, Rich, not just Black */
+  --background: oklch(0.1 0.005 260); /* Deep Blue-Black (Obsidian) */
+  --foreground: oklch(0.98 0 0); /* Soft White */
+
+  --card: oklch(0.13 0.01 260); /* Slightly lighter than bg */
+  --card-foreground: oklch(0.98 0 0);
+
+  --popover: oklch(0.13 0.01 260);
+  --popover-foreground: oklch(0.98 0 0);
+
+  /* Primary: Electric Indigo */
+  --primary: oklch(0.6 0.2 270); /* Lighter Indigo for Dark Mode */
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.18 0.01 260);
+  --secondary-foreground: oklch(0.98 0 0);
+
+  --muted: oklch(0.18 0.01 260);
+  --muted-foreground: oklch(0.7 0.02 260);
+
+  --accent: oklch(0.18 0.01 260);
+  --accent-foreground: oklch(0.99 0 0);
+
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.2 0.01 260); /* Subtle border */
+  --input: oklch(0.2 0.01 260);
+  --ring: oklch(0.5 0.2 270);
+
+  /* Sidebar Dark */
+  --sidebar: oklch(0.08 0.005 260); /* Darker than main content */
+  --sidebar-foreground: oklch(0.9 0.01 260);
+  --sidebar-primary: oklch(0.6 0.2 270);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.18 0.01 260);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: oklch(0.15 0.01 260);
+  --sidebar-ring: oklch(0.5 0.2 270);
+
+  /* Charts */
+  --chart-1: oklch(0.6 0.2 270);
+  --chart-2: oklch(0.7 0.15 180);
+  --chart-3: oklch(0.65 0.18 320);
+  --chart-4: oklch(0.8 0.12 85);
+  --chart-5: oklch(0.7 0.12 40);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1,
+      "ss01" 1; /* Stylistic set for modern sans-serif feel */
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-xl border border-border/50 shadow-sm supports-[backdrop-filter]:bg-background/40;
+  }
+
+  .glass-card {
+    @apply bg-card/50 backdrop-blur-lg border border-border/50 shadow-sm transition-all hover:bg-card/70;
+  }
+
+  /* Subtle background grid pattern */
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image:
+      linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(ellipse at top, black, transparent 90%);
+  }
+}

@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PaperForge Frontend
 
-## Getting Started
+This project implements the [Frontend Design Strategy](../docs/FRONTEND_DESIGN.md) using Next.js 16 (App Router), Bun, and Tailwind CSS.
 
-First, run the development server:
+## Architecture: Feature-Sliced Design (Modified)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+We use a domain-driven structure under `src/` to separate concerns:
+
+```text
+frontend/
+├── src/
+│   ├── app/                  # Routing Layer (Next.js App Router)
+│   │   ├── (dashboard)/      # Authenticated Layout Group
+│   │   │   ├── library/      # /library Page
+│   │   │   ├── search/       # /search Page
+│   │   │   └── layout.tsx    # Dashboard Internal Layout (Sidebar)
+│   │   ├── layout.tsx        # Root Layout (Providers, Fonts)
+│   │   └── globals.css       # Global Styles & Theme
+│   ├── components/
+│   │   ├── ui/               # Shared UI Primitives (Shadcn/ui)
+│   │   └── layout/           # Shared Layout Components (Sidebar, Header)
+│   ├── features/             # Domain Logic
+│   │   ├── library/          # Library specific components, types, hooks
+│   │   └── reader/           # PDF Reader specific logic
+│   ├── lib/                  # Utilities (API, Utils)
+│   ├── hooks/                # Global Hooks
+│   └── types/                # Global Types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Developing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  **Install dependencies**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    ```bash
+    bun install
+    ```
 
-## Learn More
+2.  **Run development server**:
 
-To learn more about Next.js, take a look at the following resources:
+    ```bash
+    bun dev
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Add new UI component**:
+    Use `shadcn` via `bunx`:
+    ```bash
+    bunx --bun shadcn@latest add <component-name>
+    ```
+    Ensure `components.json` is configured to output to `src/components/ui`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Theme
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The theme is defined in `src/app/globals.css` using `oklch` color spaces for dynamic theming (Light/Dark mode). The core palette is "Slate & Trust" (Zinc + Royal Blue).
