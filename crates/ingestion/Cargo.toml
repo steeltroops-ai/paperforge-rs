@@ -27,6 +27,10 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 backoff = { workspace = true }
 
+# PDF & Text Processing
+lopdf = { workspace = true }
+text-splitter = { workspace = true }
+
 # gRPC for internal communication
 tonic = { workspace = true }
 prost = { workspace = true }
